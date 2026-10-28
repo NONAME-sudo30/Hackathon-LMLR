@@ -189,7 +189,27 @@ function iniciar() {
   aplicarTema();
   pintarPartidas();
   pintarInfo();
+// en app.js: función del botón "Repasar fallos"
+// (la llamo verFallos porque repasarFallos ya es la función que juega los fallos)
+function verFallos() {
+  const seccion = document.getElementById("fallos");
+  seccion.hidden = !seccion.hidden;
 
+  const fallos = leerCookie("fallos", []);      // array de posiciones
+  const lista = document.getElementById("listaFallos");
+  lista.innerHTML = "";
+
+  if (fallos.length === 0) {
+    lista.innerHTML = "<li>No tienes fallos. ¡Bien!</li>";
+    return;
+  }
+  for (const pos of fallos) {
+    const q = PREGUNTAS[pos];
+    const li = document.createElement("li");
+    li.textContent = q.pregunta + " → " + q.opciones[q.correcta];
+    lista.appendChild(li);
+  }
+}
   document.getElementById("btnEmpezar").addEventListener("click", iniciarPartida);
   document.getElementById("btnOtra").addEventListener("click", iniciarPartida);
   document.getElementById("btnSiguiente").addEventListener("click", siguiente);
@@ -202,3 +222,4 @@ function iniciar() {
   document.getElementById("btnBorrar").addEventListener("click", manejarBorrar);
 }
 document.addEventListener("DOMContentLoaded", iniciar);
+document.getElementById("btnVerFallos").addEventListener("click", verFallos);
