@@ -210,6 +210,65 @@ function verFallos() {
     lista.appendChild(li);
   }
 }
+  function anotarFallo(q, acierto) {
+  const fallos = leerCookie("fallos", []);
+  const pos = PREGUNTAS.indexOf(q);
+  const yaEsta = fallos.includes(pos);
+
+  if (!acierto && !yaEsta) fallos.push(pos);
+  if (acierto && yaEsta) fallos.splice(fallos.indexOf(pos), 1);
+  guardarCookie("fallos", fallos, 30);
+
+  // si el botón no existe, no pasa nada (antes se rompía aquí)
+  const boton = document.getElementById("btnRepaso");
+  if (boton) boton.textContent = "Repetir fallos (" + fallos.length + ")";
+}
+  // FUNCIÓN NUEVA: ranking de jugadores (suma los puntos de todas sus partidas)
+// La cookie "ranking" es un array de objetos { nombre, puntos, partidas }
+function actualizarRanking(partida) {
+  const ranking = leerCookie("ranking", []);
+
+  if (partida) {
+    // busco si el jugador ya está; si no, lo creo
+    let jugador = ranking.find(j => j.nombre === partida.nombre);
+    if (!jugador) {
+      jugador = { nombre: partida.nombre, puntos: 0, partidas: 0 };
+      ranking.push(jugador);
+    }
+    jugador.puntos += partida.puntos;
+    jugador.partidas++;
+    ranking.sort((a, b) => b.puntos - a.puntos);   // más puntos primero
+    ranking.splice(10);                            // máximo 10 jugadores
+    guardarCookie("ranking", ranking, 30);
+  }
+
+  const lista = document.getElementById("listaRanking");
+  lista.innerHTML = "";
+  if (ranking.length === 0) {
+    lista.innerHTML = "<li>Aún no hay ranking.</li>";
+    return;
+  }
+  for (let i = 0; i < ranking.length; i++) {
+    const li = document.createElement("li");
+    li.textContent = (i + 1) + "º " + ranking[i].nombre + " · " + ranking[i].puntos + " puntos en " +
+      ranking[i].partidas + (ranking[i].partidas === 1 ? " partida" : " partidas");
+    lista.appendChild(li);
+  }
+}
+// en terminar(), después de guardarPartida(partida);
+actualizarRanking(partida);
+
+// en iniciar(), con los demás addEventListener
+document.getElementById("btnRanking").addEventListener("click", mostrarRanking);
+
+// en manejarBorrar(), junto a borrarCookie("partidas");
+borrarCookie("fallos");
+borrarCookie("ranking");
+function mostrarRanking() {
+  const seccion = document.getElementById("ranking");
+  seccion.hidden = !seccion.hidden;
+  actualizarRanking();
+}
   document.getElementById("btnEmpezar").addEventListener("click", iniciarPartida);
   document.getElementById("btnOtra").addEventListener("click", iniciarPartida);
   document.getElementById("btnSiguiente").addEventListener("click", siguiente);
