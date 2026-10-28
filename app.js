@@ -138,7 +138,18 @@ function terminar() {
   // (ERROR 13 está en partida.js: faltaba la clase Partida)
   const partida = new Partida(usuario.nombre, puntos, preguntas.length, new Date().toISOString(), segundos);
   guardarPartida(partida);
+function terminar() {
+  const segundos = Math.round((Date.now() - inicio) / 1000);
+  const partida = new Partida(usuario.nombre, puntos, preguntas.length, new Date().toISOString(), segundos);
+  guardarPartida(partida);
+  actualizarRanking(partida);   // aquí sí existe "partida"
 
+  mostrarSeccion("juego", false);
+  mostrarSeccion("final", true);
+  document.title = "QuizDAW";
+  document.getElementById("textoFinal").textContent = partida.resumen();
+  pintarPartidas();
+}
   mostrarSeccion("juego", false);
   mostrarSeccion("final", true);
   document.title = "QuizDAW";
@@ -160,7 +171,25 @@ function pintarPartidas() {
   document.getElementById("media").textContent =
     partidas.length > 0 ? "Media: " + mediaPuntos(partidas).toFixed(1) + " puntos" : "Aún no hay partidas.";
 }
+function verFallos() {
+  const seccion = document.getElementById("fallos");
+  seccion.hidden = !seccion.hidden;
 
+  const fallos = leerCookie("fallos", []);
+  const lista = document.getElementById("listaFallos");
+  lista.innerHTML = "";
+
+  if (fallos.length === 0) {
+    lista.innerHTML = "<li>No tienes fallos. ¡Bien!</li>";
+    return;
+  }
+  for (const pos of fallos) {
+    const q = PREGUNTAS[pos];
+    const li = document.createElement("li");
+    li.textContent = q.pregunta + " → " + q.opciones[q.correcta];
+    lista.appendChild(li);
+  }
+}
 function abrirResultados() {
   // ERROR 9: abría "resultado.html" pero el archivo se llama "resultados.html" (con s).
   // Lo vi porque la ventana emergente daba error 404.
@@ -255,8 +284,7 @@ function actualizarRanking(partida) {
     lista.appendChild(li);
   }
 }
-// en terminar(), después de guardarPartida(partida);
-actualizarRanking(partida);
+
 
 // en iniciar(), con los demás addEventListener
 document.getElementById("btnRanking").addEventListener("click", mostrarRanking);
@@ -278,6 +306,8 @@ function mostrarRanking() {
   // nada más cargar la página en vez de al hacer clic. Hay que pasar solo el nombre.
   // Lo vi porque la ventana se abría sola al recargar.
   document.getElementById("btnResultados").addEventListener("click", abrirResultados);
+  document.getElementById("btnRanking").addEventListener("click", mostrarRanking);
+
   document.getElementById("btnBorrar").addEventListener("click", manejarBorrar);
 }
 document.addEventListener("DOMContentLoaded", iniciar);
